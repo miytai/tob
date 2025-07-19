@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Разбор иврита</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #f5f7fa;
+            margin: 0;
+            padding: 20px;
+            color: #1f2937;
+        }
+        .container {
+            max-width: 100%;
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #4338ca;
+            text-align: center;
+            font-size: 22px;
+            margin-bottom: 24px;
+        }
+        .hebrew-text {
+            font-size: 24px;
+            text-align: right;
+            line-height: 1.8;
+            margin-bottom: 24px;
+            padding: 10px;
+            background: #f8fafc;
+            border-radius: 12px;
+        }
+        .word {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin: 2px;
+        }
+        .word:hover {
+            background: #e0e7ff;
+            transform: translateY(-2px);
+        }
+        .word.active {
+            background: #4338ca;
+            color: white;
+        }
+        .analysis {
+            background: #f5f3ff;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        .analysis h2 {
+            margin-top: 0;
+            color: #4338ca;
+            font-size: 20px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 10px;
+        }
+        .analysis-item {
+            margin-bottom: 12px;
+        }
+        .analysis-item strong {
+            color: #4f46e5;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #64748b;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📖 Разбор слов на иврите</h1>
+        
+        <div class="hebrew-text" id="text">
+            <!-- Слова будут добавлены через JS -->
+        </div>
+        
+        <div class="analysis" id="analysis">
+            <p>Выберите слово в тексте для анализа</p>
+        </div>
+    </div>
+
+    <script>
+        // Инициализация Telegram WebApp
+        Telegram.WebApp.expand();
+        Telegram.WebApp.ready();
+        Telegram.WebApp.setHeaderColor('#4338ca');
+        Telegram.WebApp.setBackgroundColor('#f5f7fa');
+        
+        // Пример текста на иврите
+        const sampleText = "שלום! איך אפשר לעזור לך היום?";
+        const words = sampleText.split(/([\s,.;:!?]+)/).filter(w => w.trim().length > 0);
+        const textEl = document.getElementById('text');
+        const analysisEl = document.getElementById('analysis');
+        
+        // Отображаем текст с кликабельными словами
+        words.forEach(word => {
+            const span = document.createElement('span');
+            span.className = 'word';
+            span.textContent = word;
+            
+            // Проверяем, содержит ли слово буквы иврита
+            if (/[\u0590-\u05FF]/.test(word)) {
+                span.onclick = () => analyzeWord(word, span);
+            }
+            
+            textEl.appendChild(span);
+        });
+        
+        // Функция анализа слова
+        function analyzeWord(word, element) {
+            // Удаляем активный класс у всех слов
+            document.querySelectorAll('.word').forEach(el => {
+                el.classList.remove('active');
+            });
+            
+            // Добавляем активный класс к выбранному слову
+            element.classList.add('active');
+            
+            // Показываем загрузку
+            analysisEl.innerHTML = '<div class="loading">Анализируем слово...</div>';
+            
+            // Отправляем слово в бот
+            Telegram.WebApp.sendData(JSON.stringify({ word }));
+            
+            // Обработчик ответа от бота
+            Telegram.WebApp.onEvent('mainButtonClicked', function() {
+                Telegram.WebApp.close();
+            });
+        }
+    </script>
+</body>
+</html>
